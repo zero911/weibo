@@ -1,0 +1,91 @@
+<div id="right">
+    <div class="edit_tpl"><a href="" class='set_model'></a></div>
+    <?php
+        $field=array('username','face80'=>'face','follow','fans','weibo');
+        $where=array('uid'=>session('uid'));
+        $userinfo=M('userinfo')->field($field)->where($where)->find();
+    ?>
+    <dl class="user_face">
+        <dt>
+        <a href="{:U('show/'.session('uid'))}">
+            <img src=" 
+                        <if condition='$userinfo["face"]'>
+                            __ROOT__/Uploads/Face/{$userinfo.face}"
+                        <else />
+                            __ROOT__/Home/Public/Images/noface.gif" 
+                        </if> 
+                            width='80' height='80' alt="{$userinfo['username']}" />
+        </a>
+        </dt>
+        <dd><a href="{:U('show/'.session('uid'))}">{$userinfo['username']}</a></dd>
+    </dl>
+    <ul class='num_list'>
+        <li><a href="{:U('follow/'.session('uid'))}"><strong>{$userinfo['follow']}</strong><span>关注</span></a></li>
+        <li><a href="{:U('fans/'.session('uid'))}"><strong>{$userinfo['fans']}</strong><span>粉丝</span></a></li>
+        <li class='noborder'><a href="{:U('show/'.session('uid'))}"><strong>{$userinfo['weibo']}</strong><span>微博</span></a></li>
+    </ul>
+    <div class="maybe">
+        <fieldset>
+            <?php
+                $db=M('follow');
+                $where= array('fans'=>session('uid'));
+                //查出我关注的人
+                $follow=$db->where($where)->field('follow')->select();
+                //将id转为一维数组
+                if(empty($follow)){
+                    $friends=null;
+                }else{
+                    foreach ($follow as $k=>$v){
+                        $follow[$k]=$v['follow'];
+                    }
+                    //构建感兴趣的人的sql语句
+                    $sql='SELECT `uid`,`username`,`face50` AS `face`,COUNT(f.`follow`) AS
+                    `count` FROM `hd_follow` f LEFT JOIN `hd_userinfo` u ON f.`follow` = u.
+                    `uid` WHERE f.`fans` IN (' . implode(',',$follow) .') AND f.`follow` NOT
+                     IN (' . implode(',' ,$follow). ') AND f.`follow` <>' . session('uid') . '
+                     GROUP BY f.`follow` ORDER BY `count` DESC LIMIT 4';
+
+                     $friends = $db->query($sql);
+                 }
+            ?>
+            <legend>可能感兴趣的人</legend>
+            <ul>
+                <if　!isset($friends)>
+                    <span style='color:red;margin-top:5px'>空</sapn>
+                <else>
+                    <foreach name='friends' item='v'>
+                    <li>
+                        <dl>
+                            <dt>
+                            <a href="{:U('show/'.$v['uid'])}"><img src="
+                                    <if condition='$v["face"]'>
+                                        __ROOT__/Uploads/Face/{$v.face}"
+                                    <esle/>
+                                        __ROOT__/Home/Public/Images/noface.gif " 
+                                    </if>
+                                         alt="{$v.username}" width='30' height='30'/></a>
+                            </dt>
+                            <dd><a href="{:U('show/'.$v['uid'])}">{$v.username}</a></dd>
+                            <dd>共{$v.count}个共同好友</dd>
+                        </dl>
+                        <span class='heed_btn'><strong>+&nbsp;</strong>关注</span>
+                    </li>
+                    </foreach>
+                </if>
+            </ul>
+        </fieldset>
+            
+    </div>
+    <div class="post">
+        <div class='post_line'>
+            <span>公告栏</span>
+        </div>
+        <ul>
+            <li><a href="">浙江天上掉馅饼</a></li>
+            <li><a href="">深圳连体婴儿</a></li>
+            <li><a href="">成都幸福感第一</a></li>
+        </ul>
+    </div>
+</div>
+
+<My_tags:test id='100' name='zero' />
