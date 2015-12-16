@@ -182,8 +182,38 @@ class UserController extends CommonController {
         $this->display();
     }
     //删除关注
-    public function delFollow(){
+    public function delFollowss(){
         
+        if(!IS_POST){
+            E('页面不存在');
+        }
+        $type = intval($_POST['type']);
+        $uid = intval($_POST['uid']);
+        $me = session('uid');
+        //统计follow/fans总数
+        $whereCount = $type==1 ? array('fans'=>$me) : array('follow'=>$uid); 
+        $count = M('follow')->where($whereCount)->count();
+        $where = array(
+            'follow'    =>  $type ==1 ? $uid : $me,
+            'fans'      =>  $type ==1 ? $me : $uid
+        );
+        if(M('follow')->where($where)->delete()){
+            
+            if(type){
+                M('userinfo')->where(array('uid'=>$me))->setDec('follow');//关注人的关注数-1
+                M('userinfo')->where(array('uid'=>$uid))->setDec('fans');//被关注者的fans-1
+            }else{
+                M('userinfo')->where(array('uid'=>$me))->setDec('fans');//被关注者的fans-1
+            }
+            $data = array(
+                'status'    =>  1,
+                'count'     =>  $count - 1
+            );
+            echo json_encode($data);
+        }else{
+            $data = array('status'=>0);
+            echo json_encode($data);
+        }
     }
     //私信页处理
     public function showLetter(){

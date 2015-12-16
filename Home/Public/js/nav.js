@@ -65,8 +65,6 @@ $(function(){
 //            return false;
 //        }
 //        $.post(sechThink,{keyword:cons},function(msg){
-//            
-//            var msg = eval("("+ msg +")");
 //            if(msg.status){
 //                var search_think = "<div id='sech-cons-think'></div>";
 //                $('#sech-cons-think').css({
@@ -119,7 +117,6 @@ $(function(){
                 return false;
             }
             $.post(addGroup, {groupName: groupName}, function (msg) {
-                var data = eval("(" + msg + ")");
                 if (data.status == 1) {
                     //添加成功，添加分组名称到模板
                     var content = "<li><a href=" + data.url + "/gid" + data.gid
@@ -144,7 +141,7 @@ $(function(){
     //点击关注show出添加组别的界面
     $('.add-fl').click(function(){
         //show 的#follow
-        var index = $(this).index();
+        var thisObj = $(this);
         //移除提示语
         $('#group-none').remove();
         var myId = $(this).attr('uid');
@@ -166,7 +163,7 @@ $(function(){
         });
         createBg('follow-bg');//创建背景遮罩
         drag(obj,obj.find('.follow_head'));//设置可移动
-
+        
         //关注好友到指定组别
         $('.add-follow-sub').click(function () {
             var data = {
@@ -175,26 +172,25 @@ $(function(){
             };
             $.post(addFollow, data, function (msg) {
                 //回调函数添加dom操作
-                var data = eval("(" + msg + ")");
-                if (data.status) {
+                if (msg.status == '1') {
                     $('#follow').hide();
                     $('#follow-bg').remove();
                     //创建添加的dom
-                    var dom = "<input type='hidden' name='list-del-follw' value=" + data.followId + ">";
-                    if (data.type == 'follow') {
+                    var dom = "<input type='hidden' name='list-del-follw' value=" + msg.followId + "/>";
+                    if (msg.style == 'follow') {
                         //已关注
                         dom += "<dt>√&nbsp;已关注</dt>";
                     }
-                    if (data.type == 'mutual') {
+                    if (msg.style == 'mutual') {
                         //互相关注
                         dom += "<dt>互相关注</dt>";
                     }
                     dom += "&nbsp;<dd id='list-del-follw'>移除</dd>";
-                    $('.list-right').eq(index).empty().html(dom);
+                    thisObj.parent().empty().html(dom);
                 } else {
-                    $('.sel-group').after("<p id='group-none'>很遗憾,添加关注失败,请重试...</p>");
+                    alert('很遗憾,添加关注失败,请重试');
                 }
-            },'json');
+            }, 'json');
         });
     });
     //取消关注
@@ -204,14 +200,18 @@ $(function(){
     });
     //移除关注
     $('#list-del-follw').click(function(){
-        var index = $(this).index();//索引值有问题？？？
-        alert(index);
-        var uid = $("input[name='list-del-follw']").eq(index).val();
+        var isDel = confirm('确认移除吗?');
+        if(!isDel){
+            return false;
+        }
+        var delObj = $(this);
+        var uid = delObj.siblings("input[name='list-del-follw']").val();
+        var dom = "<dt class='add-fl' uid=" + uid + ">+&nbsp;关注</dt>";
         $.post(delFollow,{uid:uid},function(msg){
-            var msg = eval("(" + msg + ")");
-            if(msg.status){
-                var dom = "<dt class='add-fl' uid='"+ uid +"'>+&nbsp;关注</dt>";
-                $('.list-right').eq(index).empty().html(dom);
+            if(msg.status=='1'){
+                delObj.siblings('dt').remove();
+                delObj.before(dom);//替换为关注
+                delObj.remove();//去除移除按钮
             }else{
                 alert('很遗憾，移除关注失败,请重试...');
             }

@@ -12,9 +12,9 @@ class SearchController extends CommonController{
     //put your code here
     //搜索找人处理
     public function sechUser(){
-        if(!IS_POST){
-            E('页面不存在');
-        }
+//        if(!IS_POST){
+//            E('页面不存在');
+//        }
         $keyword = $_POST['keyword']=='' ? null : $_POST['keyword'];
         if(!empty($keyword)){
             $where = array(
@@ -36,8 +36,8 @@ class SearchController extends CommonController{
                             $v['followed'] = 1;
                             $users[$k] = $v;
                         }
-                        $mutual = M('follow')->where(array('fans' => $m['follow'], 'follow' => session('uid')))->select();
-                        if (!empty($mutual) && $v['uid'] == session('uid')) {
+                        $mutual = M('follow')->where(array('fans' => $m['follow'], 'follow' => session('uid')))->find();
+                        if (!empty($mutual) && $v['uid'] == $m['follow']) {
                             $v['mutual'] = 1;
                             $users[$k] = $v;
                         }
@@ -53,9 +53,9 @@ class SearchController extends CommonController{
     
     //异步搜索处理
     public function sechThink(){
-        if(!IS_POST){
-            E('页面不存在');
-        }
+//        if(!IS_POST){
+//            E('页面不存在');
+//        }
         $keyword = $_POST['keyword'];
         $where = array(
             'username' => array('like', $keyword . '%'),
@@ -74,12 +74,12 @@ class SearchController extends CommonController{
     
     //搜索找微博处理
     public function sechWeibo(){
-//        if(!IS_GET){
-//            E('页面不存在');
-//        }
-        $keyWord = htmlspecialchars($_GET['keyword']);
+        if(!IS_POST){
+            E('页面不存在');
+        }
+        $keyWord = htmlspecialchars($_POST['keyword']);
         $where = array(
-            'content'=>array('IN',$keyWord.'%')
+            'content'=>array('LIKE','%'.$keyWord.'%')
             );
         //分页
         $count = M('weibo')->where($where)->count();

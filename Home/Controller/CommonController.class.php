@@ -46,22 +46,24 @@ class CommonController extends Controller{
         if(!IS_POST){
             E('页面不存在');
         }
+        $me = session('uid');
+        $followId = intval($_POST['followId']);
         $data = array(
-            'follow'    => intval($_POST['followId']),
-            'fans'      => intval(session('uid')),
+            'follow'    => $followId,
+            'fans'      => intval($me),
             'gid'       => intval($_POST['gid']) 
         );
         if(M('follow')->add($data)){
             //被关注的用户fans+1
-            M('userinfo')->where(array('uid'=>$data['follow']))->setInc('fans');
+            M('userinfo')->where(array('uid'=>$followId))->setInc('fans');
             //关注的用户关注数+1
-            M('userinfo')->where(array('uid'=>$data['fans']))->setInc('follow');
+            M('userinfo')->where(array('uid'=>$me))->setInc('follow');
             //查询是否为互相关注
-            $mutual = M('follow')->where(array('fans'=>$data['follow'],'follow'=>$data['fans']))->find();
+            $mutual = M('follow')->where(array('fans'=>$followId,'follow'=>$me))->find();
             $msg = array(
                 'status'      =>  1,
-                'followId'  =>  $data['follow'],
-                'type'      => empty($mutual) ? 'follow' : 'mutual'
+                'followId'  =>  $followId,
+                'style'      => empty($mutual) ? 'follow' : 'mutual'
             );
             echo json_encode($msg);
         }else{
@@ -75,15 +77,17 @@ class CommonController extends Controller{
             E('页面不存在');
         }
         $uid = intval($_POST['uid']);
+        $me = session('uid');
         $where = array(
             'follow'    =>  $uid,
-            'fans'      =>  session('uid')
+            'fans'      =>  $me
         );
         if(M('follow')->where($where)->delete()){
             //关注人的关注数-1
-            M('userinfo')->where(array('uid'=>session('uid')))->setDec('follow');
+            M('userinfo')->where(array('uid'=>$me))->setDec('follow');
             //被关注者的fans-1
             M('userinfo')->where(array('uid'=>$uid))->setDec('fans');
+            
             $data = array(
                 'status'    =>  1
             );
